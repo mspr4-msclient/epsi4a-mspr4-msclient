@@ -1,11 +1,5 @@
 [
   {
-    "id": 1,
-    "email": "ant.letailleur@gmail.com",
-    "password": "$2b$10$w9eHWHi8aUS.0opg/EdDduYgRW2oBsa8HzUVjC40iXve.q0gI0aYG",
-    "username": "AntoineLetailleur"
-  },
-  {
     "id": 2,
     "email": "dim@gmail.com",
     "password": "$2b$10$U4NnUuw.aT19HgLncDxkQOlQADjyy/ePLPRhhrsjAuqIQoGZkI1xK",

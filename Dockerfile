@@ -1,12 +1,23 @@
-FROM node:22.15.0
+FROM node:24.0.1-slim AS build
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json .
+
 RUN npm install
 
 COPY . .
 
-EXPOSE 8080
+RUN npm run build
 
-CMD ["node", "app.js"]
+FROM node:24.0.1-slim AS production
+
+WORKDIR /app
+
+COPY package*.json .
+
+RUN npm ci --only=production
+
+COPY --from=build /app/dist ./dist
+
+CMD ["node", "dist/app.js"]
