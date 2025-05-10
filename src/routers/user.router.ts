@@ -56,11 +56,13 @@ router.post('/',  userController.createUser);
 *     parameters:
 *        - name: page
 *          in: query
+*          type: integer
 *          description: Page number
 *          required: false
 *          default: 1
 *        - name: limit
 *          in: query
+*          type: integer
 *          description: Number of users per page
 *          required: false
 *          default: 10
@@ -82,6 +84,7 @@ router.get('/', userController.getAllUsers);
 *     parameters:
 *      - name: id
 *        in: path
+*        type: string
 *        description: User ID
 *        required: true
 *     responses:
@@ -104,6 +107,7 @@ router.get('/:id', userController.getUserById);
 *     parameters:
 *       - name: id
 *         in: path
+*         type: string
 *         description: User ID
 *         required: true
 *     requestBody:
@@ -137,6 +141,8 @@ router.get('/:id', userController.getUserById);
 *        description: Modified
 *      400:
 *        description: Bad Request
+*      409:
+*        description: Conflict
 *      404:
 *        description: Not Found
 *      500:
@@ -150,8 +156,9 @@ router.patch('/:id', userController.updateUser);
 *  delete:
 *     summary: Delete user by Id
 *     parameters:
-*      - name: userId
+*      - name: id
 *        in: path
+*        type: string
 *        description: User ID
 *        required: true
 *     responses:

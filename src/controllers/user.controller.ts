@@ -56,6 +56,14 @@ export default class UserController {
             if (!Types.ObjectId.isValid(id)) {
                 return res.status(400).json({ message: 'ID invalide' });
             }
+
+            if (req.body.email !== undefined) {
+                const existingUser = await userService.getUserByEmail(req.body.email);
+            
+                if (existingUser) {
+                    return res.status(409).json({ message: 'Email déjà utilisé' });
+                }
+            }
         
             const updatedUser = await userService.updateUser({ id, data: req.body });
 
