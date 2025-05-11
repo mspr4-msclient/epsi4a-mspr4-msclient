@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  orders:
+    image: dperreaux/epsi4a-mspr4-msorder:0.2
+    container_name: orders
+    ports:
+      - "3022:8080"
+    env_file:
+      - .env
+
+  client:
+    image: epsi4a-mspr4-msclient:0.2
+    container_name: client
+    ports:
+      - "3033:8080"
+    env_file:
+      - .env
