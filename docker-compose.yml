@@ -62,3 +62,30 @@ services:
     container_name: kibana
     ports:
       - "5601:5601"
+
+  # produit:
+  #   image: genessy/epsi4a-mspr4-msproduct:0.3
+  #   container_name: produit
+  #   hostname: produit
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3022:8080"
+  #   environment:
+  #     - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
+  #   env_file:
+  #     - ./environment/.env.product.development
+  #   volumes:
+  #     - ./serviceAccountKey.json:/app/serviceAccountKey.json
+
+  # fidelite:
+  #   image: gmeline/epsi4a-mspr4-msfidelity:0.3
+  #   container_name: fidelite
+  #   hostname: fidelite
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   platform: linux/arm64
+  #   ports:
+  #     - "3044:8080"

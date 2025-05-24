@@ -8,3 +8,4 @@ environment/
 docker-compose.yml
 docker-compose.override.yml
 /src/auth/middleware/token-verifier.exe
+serviceAccountKey.json
