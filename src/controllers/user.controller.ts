@@ -1,126 +1,230 @@
 import { Request, Response } from 'express';
 import UserService from "../services/user.service"; 
 import { Types } from 'mongoose';
+import { publishMessage } from '../rabbitmq/publisher';
+import logger from '../loggers/logger';
+import { formatUser } from '../utils/response';
 
 
 const userService = new UserService();
 
+export function extractRequestContext(req: Request) {
+  return {
+    route: req.originalUrl,
+    method: req.method,
+    requestId: req.headers['x-request-id'] || null,
+    ip: req.ip,
+    userAgent: req.headers['user-agent'],
+  };
+}
+
 export default class UserController {
-    async createUser(req: Request, res: Response) {    
-        try {
-            const { email, username, age } = req.body;
+    
+    async createUser(req: Request, res: Response) {
         
-            if (!email || !username) {
-                return res.status(400).json({ message: 'Champs manquants (email, username)' });
+        const requestContext = extractRequestContext(req);
+
+        try {
+            const { email, first_name, last_name, birth_date, auth_id } = req.body;
+        
+            if (!email || !first_name || !last_name || !birth_date || !auth_id) {
+                logger.warn("Champs manquants", { ...requestContext, body: req.body });
+                return res.status(400).json({ message: 'Champs manquants' });
             }
 
-            const existingUser = await userService.getUserByEmail(email);
+            const existingMail = await userService.getUserByEmail(email);
             
-            if (existingUser) {
-              return res.status(409).json({ message: 'Email déjà utilisé' });
+            if (existingMail) {
+                logger.info("Email déjà utilisé", { ...requestContext, email });
+                return res.status(409).json({ message: 'Email déjà utilisé' });
+            }
+
+            const existingAuthId = await userService.getUserByAuthId(auth_id);
+
+            if (existingAuthId) {
+                logger.info("Auth ID déjà utilisé", { ...requestContext, auth_id });
+                return res.status(409).json({ message: 'Auth ID déjà utilisé' });
             }
         
-            const newUser = await userService.createUser({ email, username, age });
-            res.status(201).json({ message: 'Utilisateur créé avec succès', userId: newUser._id });
-          } catch (err) {
-            console.error(err);
+            const newUser = await userService.createUser({ email, first_name, last_name, birth_date, auth_id });
+            logger.info("Utilisateur créé", { ...requestContext, userId: newUser._id });
+            res.status(201).json({ data: formatUser({ ...newUser.toObject(), _id: newUser._id.toString() }) });
+        } catch (err) {
+
+            logger.error("Erreur création utilisateur", {
+                ...requestContext,
+                error: (err as Error).message,
+                stack: (err as Error).stack,
+            });
+
             res.status(500).json({ message: 'Erreur serveur' });
           }
     }
 
-    async getUserById(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
+    async getUserByAuthId(req: Request, res: Response) {
 
-            if (!Types.ObjectId.isValid(id)) {
-              return res.status(400).json({ message: 'ID invalide' });
+        const requestContext = extractRequestContext(req);
+
+        try {
+            const { auth_id } = req.params as { auth_id: string };
+
+            if (!auth_id) {
+                logger.warn("Auth ID manquant", { ...requestContext, params: req.params });
+                return res.status(400).json({ message: 'Auth ID manquant' });
             }
         
-            const user = await userService.getUserById({ id });
+            const user = await userService.getUserByAuthId(auth_id);
+            logger.info("Utilisateur récupéré", { ...requestContext, userId: auth_id });
 
             if (!user) {
-              return res.status(404).json({ message: 'Utilisateur non trouvé' });
+                logger.warn("Utilisateur non trouvé", { ...requestContext, userId: auth_id });
+                return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
         
-            res.status(201).json(user);
+            res.status(200).json({ data: formatUser({ ...user.toObject(), _id: user._id.toString() }) });
         } catch (err) {
-            console.error(err);
+            logger.error("Erreur récupération utilisateur", {
+                ...requestContext,
+                error: (err as Error).message,
+                stack: (err as Error).stack,
+            });
             res.status(500).json({ message: 'Erreur serveur' });
         }
     }
 
     async updateUser(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
 
-            if (!Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ message: 'ID invalide' });
+        const requestContext = extractRequestContext(req);
+
+        try {
+            const { auth_id } = req.params as { auth_id: string };
+            
+            if (!auth_id) {
+                logger.warn("Auth ID manquant", { ...requestContext, params: req.params });
+                return res.status(400).json({ message: 'Auth ID manquant' });
             }
 
             if (req.body.email !== undefined) {
                 const existingUser = await userService.getUserByEmail(req.body.email);
             
                 if (existingUser) {
+                    logger.info("Email déjà utilisé", { ...requestContext, email: req.body.email });
                     return res.status(409).json({ message: 'Email déjà utilisé' });
                 }
             }
+
+            if (req.body.auth_id !== undefined) {
+                logger.warn("Modification de auth ID non autorisée", { ...requestContext, body: req.body });
+                return res.status(400).json({ message: 'Modification de auth ID non autorisée' });
+            }
         
-            const updatedUser = await userService.updateUser({ id, data: req.body });
+            const updatedUser = await userService.updateUser({ auth_id, data: req.body });
 
             if (!updatedUser) {
+                logger.warn("Utilisateur non trouvé", { ...requestContext, userId: auth_id });
                 return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
 
-            res.status(201).json({ message: 'Utilisateur mis à jour avec succès', updatedUser });
+            logger.info("Utilisateur mis à jour", { ...requestContext, userId: auth_id });
+            res.status(201).json({ data: formatUser({ ...updatedUser.toObject(), _id: updatedUser._id.toString() }) });
         } catch (err) {
-            console.error(err);
+            logger.error("Erreur mise à jour utilisateur", {
+                ...requestContext,
+                error: (err as Error).message,
+                stack: (err as Error).stack,
+            });
             res.status(500).json({ message: 'Erreur serveur' });
         }
     }
 
     async deleteUser(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
 
-            if (!Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ message: 'ID invalide' });
+        const requestContext = extractRequestContext(req);
+
+        try {
+            const { auth_id } = req.params as { auth_id: string };
+            
+            if (!auth_id) {
+                logger.warn("Auth ID manquant", { ...requestContext, params: req.params });
+                return res.status(400).json({ message: 'Auth ID manquant' });
             }
 
-            const deletedUser = await userService.deleteUser({ id });
+            const deletedUser = await userService.deleteUser({ auth_id });
 
             if (!deletedUser) {
+                logger.warn("Utilisateur non trouvé", { ...requestContext, userId: auth_id });
                 return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
 
-            res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+            logger.info("Utilisateur supprimé", { ...requestContext, userId: auth_id });
+            res.status(204).send();
         } catch (err) {
-            console.error(err);
+            logger.error("Erreur suppression utilisateur", {
+                ...requestContext,
+                error: (err as Error).message,
+                stack: (err as Error).stack,
+            });
             res.status(500).json({ message: 'Erreur serveur' });
         }
     }
 
     async getAllUsers(req: Request, res: Response) {
+
+        const requestContext = extractRequestContext(req);
+
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
-            const { users, total, totalPages } = await userService.getAllUsers({ page, limit });
+            const { users, total, total_pages } = await userService.getAllUsers({ page, limit });
 
             if (!users) {
-                return res.status(404).json({ message: 'Erreur lors de la récupération de tous les utilisateurs' });
-            }
-            else if (users.length === 0) {
-                return res.status(200).json({ message: 'Aucun utilisateur trouvé' });
-            }
+                logger.warn("Erreur lors de la récupération de tous les utilisateurs", { ...requestContext });
+                return res.status(400).json({ message: 'Erreur lors de la récupération de tous les utilisateurs' });
+            } 
 
-            res.status(201).json({
-                page,
-                totalPages,
-                totalUsers: total,
-                users
+            logger.info("Utilisateurs récupérés", { ...requestContext, totalUsers: total });
+
+            res.status(200).json({
+                page: page.toString(),
+                total_pages: total_pages.toString(),
+                total_users: total.toString(),
+                data: users.map(user => formatUser({ ...user.toObject(), _id: user._id.toString() }))
             });
         } catch (err) {
-            console.error(err);
+            logger.error("Erreur récupération utilisateurs", {
+                ...requestContext,
+                error: (err as Error).message,
+                stack: (err as Error).stack,
+            });
             res.status(500).json({ message: 'Erreur serveur' });
+        }
+    }
+
+    async birthdayEvent(req: Request, res: Response): Promise<void> {
+
+        const requestContext = extractRequestContext(req);
+
+        try {
+
+            const msg = req.body as unknown;
+            const { exchangeName, exchangeType } = req.query as { exchangeName: string, exchangeType: string };
+
+            if (!msg || !exchangeName || !exchangeType) {
+                logger.warn("Message, name and type of the exchange are required.", { ...requestContext, body: req.body });
+                res.status(400).json({ success: false, error: 'Message, name and type of the exchange are required.' });
+            }
+
+            await publishMessage(msg, exchangeName, exchangeType);
+
+            logger.info("Message publié", { ...requestContext, msg });
+            res.status(200).json({ success: true, message: 'Message published.' });
+        } catch (err) {
+            logger.error("Erreur publication message", {
+                ...requestContext,
+                error: (err as Error).message,
+                stack: (err as Error).stack,
+            });
+            res.status(500).json({ success: false, error: (err as Error).message });
         }
     }
 }

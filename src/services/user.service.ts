@@ -1,3 +1,4 @@
+import { auth } from 'express-openid-connect';
 import { UserModel } from '../models/user.model';
 
 
@@ -12,9 +13,20 @@ export default class UserService {
         }
     }
 
-    async createUser({email, username, age}: {email: string, username: string, age?: number}) {    
+    async getUserByAuthId(auth_id: string) {
         try {
-            const newUser = await UserModel.create({ email, username, age });
+            const user = await UserModel.findOne({ auth_id })
+                .select('email first_name last_name birth_date is_validated auth_id created_at');
+            return user;
+        } catch (err) {
+            console.error(err);
+            throw new Error('Erreur lors de la récupération de l\'utilisateur par auth_id');
+        }
+    }
+
+    async createUser({email, first_name, last_name, birth_date, auth_id }: {email: string, first_name: string, last_name: string, birth_date: string, auth_id: string}) {    
+        try {
+            const newUser = await UserModel.create({ email, first_name, last_name, birth_date, is_validated: true, auth_id, created_at: new Date() });
             return newUser;
         } catch (err) {
             console.error(err);
@@ -22,23 +34,15 @@ export default class UserService {
         }
     }
 
-    async getUserById({ id }: { id: string }) {
+    async updateUser({ auth_id, data }: { auth_id: string, data: any }) {
         try {
-            const user = await UserModel.findById(id).select('-__v');
-            return user;
-        } catch (err) {
-            console.error(err);
-            throw new Error('Erreur lors de la récupération de l\'utilisateur par id');
-        }
-    }
 
-    async updateUser({ id, data }: { id: string, data: any }) {
-        try {
-            const updatedUser = await UserModel.findByIdAndUpdate(
-                id,
+            const updatedUser = await UserModel.findOneAndUpdate(
+                { auth_id },
                 data,
                 { new: true, runValidators: true }
             );
+
             return updatedUser
         } catch (err) {
             console.error(err);
@@ -46,9 +50,9 @@ export default class UserService {
         }
     }
 
-    async deleteUser({ id }: { id: string }) {
+    async deleteUser({ auth_id }: { auth_id: string }) {
         try {
-            const deletedUser = await UserModel.findByIdAndDelete(id);
+            const deletedUser = await UserModel.findOneAndDelete({auth_id});
             return deletedUser;
         } catch (err) {
             console.error(err);
@@ -61,7 +65,8 @@ export default class UserService {
             const skip = (page - 1) * limit;
 
             const users =  await UserModel.find()
-                .select('email username age')
+                .select('email first_name last_name birth_date is_validated auth_id created_at')
+                .sort({ created_at: -1 })
                 .skip(skip)
                 .limit(limit);
             
@@ -71,7 +76,7 @@ export default class UserService {
                 users,
                 total,
                 page,
-                totalPages: Math.ceil(total / limit)
+                total_pages: Math.ceil(total / limit)
             };
             
         } catch (err) {

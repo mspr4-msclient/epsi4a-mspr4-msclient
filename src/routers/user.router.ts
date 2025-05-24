@@ -1,5 +1,6 @@
 import { Router } from "express";
 import UserController from '../controllers/user.controller';
+import { authorize } from "../auth/auth";
 
 
 const userController = new UserController();
@@ -7,7 +8,7 @@ const router = Router();
 
 /**
 * @openapi
-* '/api/v1/client':
+* '/api/v1/clients':
 *  post:
 *     summary: Create a user
 *     requestBody:
@@ -17,11 +18,13 @@ const router = Router();
 *           schema:
 *            type: object
 *            required:
-*              - username
+*              - last_name
+*              - first_name
 *              - email
-*              - age
+*              - birth_date
+*              - auth_id
 *            properties:
-*              username:
+*              last_name:
 *                type: string
 *                default: johndoe
 *                description: The username of the user
@@ -31,11 +34,21 @@ const router = Router();
 *                default: johndoe@mail.com
 *                description: The email of the user
 *                required: true
-*              age:
-*                type: integer
-*                default: 20
-*                description: The age of the user
-*                required: false
+*              first_name:
+*                type: string
+*                default: John
+*                description: The first name of the user
+*                required: true
+*              birth_date:
+*               type: string
+*               default: 2000-01-01
+*               description: The birth date of the user
+*               required: true
+*              auth_id:
+*               type: string
+*               default: sub|1234567890
+*               description: The sub claim value of the user in Auth0
+*               required: true
 *     responses:
 *      201:
 *        description: Created
@@ -46,11 +59,11 @@ const router = Router();
 *      500:
 *        description: Server Error
 */
-router.post('/',  userController.createUser);
+router.post('/', userController.createUser);
 
 /**
 * @openapi
-* '/api/v1/client':
+* '/api/v1/clients':
 *  get:
 *     summary: Get all users
 *     parameters:
@@ -69,26 +82,26 @@ router.post('/',  userController.createUser);
 *     responses:
 *      200:
 *        description: Fetched Successfully
-*      404:
-*        description: Not Found
+*      400:
+*        description: Bad Request
 *      500:
 *        description: Server Error
 */
-router.get('/', userController.getAllUsers);
+router.get('/', /*authorize(["admin:client"]),*/ userController.getAllUsers);
 
 /**
 * @openapi
-* '/api/v1/client/{id}':
+* '/api/v1/clients/{auth_id}':
 *  get:
-*     summary: Get user by ID
+*     summary: Get user by auth ID
 *     parameters:
-*      - name: id
+*      - name: auth_id
 *        in: path
 *        type: string
-*        description: User ID
+*        description: User auth ID
 *        required: true
 *     responses:
-*      201:
+*      200:
 *        description: Fetched Successfully
 *      400:
 *        description: Bad Request
@@ -97,18 +110,18 @@ router.get('/', userController.getAllUsers);
 *      500:
 *        description: Server Error
 */
-router.get('/:id', userController.getUserById);
+router.get('/:auth_id', userController.getUserByAuthId);
 
 /**
 * @openapi
-* '/api/v1/client/{id}':
+* '/api/v1/clients/{auth_id}':
 *  patch:
 *     summary: Modify a user
 *     parameters:
-*       - name: id
+*       - name: auth_id
 *         in: path
 *         type: string
-*         description: User ID
+*         description: User auth ID
 *         required: true
 *     requestBody:
 *      required: true
@@ -117,25 +130,31 @@ router.get('/:id', userController.getUserById);
 *           schema:
 *            type: object
 *            required:
-*              - username
+*              - last_name
+*              - first_name
 *              - email
-*              - age
+*              - birth_date
 *            properties:
-*              username:
+*              last_name:
 *                type: string
 *                default: johndoe
 *                description: The username of the user
-*                required: false
+*                required: true
 *              email:
 *                type: string
 *                default: johndoe@mail.com
 *                description: The email of the user
-*                required: false
-*              age:
-*                type: integer
-*                default: 20
-*                description: The age of the user
-*                required: false
+*                required: true
+*              first_name:
+*                type: string
+*                default: John
+*                description: The first name of the user
+*                required: true
+*              birth_date:
+*               type: string
+*               default: 2000-01-01
+*               description: The birth date of the user
+*               required: true
 *     responses:
 *      201:
 *        description: Modified
@@ -148,29 +167,70 @@ router.get('/:id', userController.getUserById);
 *      500:
 *        description: Server Error
 */
-router.patch('/:id', userController.updateUser);
+router.patch('/:auth_id', userController.updateUser);
 
- /**
+/**
 * @openapi
-* '/api/v1/client/{id}':
+* '/api/v1/clients/{auth_id}':
 *  delete:
-*     summary: Delete user by Id
+*     summary: Delete user by auth ID
 *     parameters:
-*      - name: id
+*      - name: auth_id
 *        in: path
 *        type: string
-*        description: User ID
+*        description: User auth ID
 *        required: true
 *     responses:
-*      200:
-*        description: Removed
+*      204:
+*        description: Deleted Successfully
 *      400:
-*        description: Bad request
+*        description: Bad Request
 *      404:
 *        description: Not Found
 *      500:
 *        description: Server Error
 */
-router.delete('/:id', userController.deleteUser);
+router.delete('/:auth_id', userController.deleteUser);
+
+/**
+* @openapi
+* '/api/v1/clients/mb/orders':
+*   post:
+*     summary: Publish message to the specified queue with RabbitMQ 
+*     parameters:
+*       - name: exchangeName
+*         in: query
+*         type: string
+*         description: Name of the exchange to publish the message to
+*         required: true
+*       - name: exchangeType
+*         in: query
+*         type: string
+*         description: Type of the exchange to publish the message to
+*         required: true
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object or string
+*             example:
+*               orderId: "123456"
+*               clientId: "abc789"
+*               total: 49.99
+*               items:
+*                 - productId: "P001"
+*                   quantity: 2
+*                 - productId: "P002"
+*                   quantity: 1
+*     responses:
+*       200:
+*         description: Message published successfully
+*       400:
+*         description: Bad Request
+*       500:
+*         description: Server Error
+*/
+router.post('/mb/orders', userController.birthdayEvent);
 
 module.exports = router;

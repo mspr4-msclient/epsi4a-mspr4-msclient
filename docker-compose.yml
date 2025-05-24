@@ -1,18 +1,64 @@
-version: '3.8'
-
 services:
-  orders:
-    image: dperreaux/epsi4a-mspr4-msorder:0.2
-    container_name: orders
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
-      - "3022:8080"
-    env_file:
-      - .env
+      - "5672:5672" 
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  client:
-    image: epsi4a-mspr4-msclient:0.2
+  # orders:
+  #   image: dperreaux/epsi4a-mspr4-msorder:0.3
+  #   container_name: orders
+  #   ports:
+  #     - "3022:8080"
+  #   env_file:
+  #     - ./environment/.env.order.development
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+
+  client_consumer:
+    image: epsi4a-mspr4-msclient:0.4
     container_name: client
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      logstash:
+        condition: service_started
     ports:
       - "3033:8080"
     env_file:
-      - .env
+      - ./environment/.env.client.development
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.9.3
+    container_name: logstash
+    volumes:
+      - ./src/logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5000:5000"
+      - "5044:5044"
+    env_file:
+      - ./environment/.env.client.development
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.9.3
+    container_name: kibana
+    ports:
+      - "5601:5601"
