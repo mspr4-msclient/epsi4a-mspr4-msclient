@@ -136,3 +136,4 @@ dist/
 .pnp.*
 /environment
 /src/auth/middleware/
+serviceAccountKey.json
