@@ -4,7 +4,7 @@ client-service-logs-*
 Rabbit MQ :  
 - rabbitmq_connections
 - ...
-Client :
+Client :  
 - http_requests_total
 - http_errors_total
 - http_response_time_bucket
