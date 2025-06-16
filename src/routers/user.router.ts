@@ -87,7 +87,7 @@ router.post('/', userController.createUser);
 *      500:
 *        description: Server Error
 */
-router.get('/', /*authorize(["admin:client"]),*/ userController.getAllUsers);
+router.get('/', authorize(["admin:client"]), userController.getAllUsers);
 
 /**
 * @openapi
@@ -196,7 +196,7 @@ router.delete('/:auth_id', userController.deleteUser);
 * @openapi
 * '/api/v1/clients/mb/orders':
 *   post:
-*     summary: Publish message to the specified queue with RabbitMQ 
+*     summary: Publish message to the specified exchange with RabbitMQ 
 *     parameters:
 *       - name: exchangeName
 *         in: query
@@ -215,14 +215,8 @@ router.delete('/:auth_id', userController.deleteUser);
 *           schema:
 *             type: object or string
 *             example:
-*               orderId: "123456"
 *               clientId: "abc789"
-*               total: 49.99
-*               items:
-*                 - productId: "P001"
-*                   quantity: 2
-*                 - productId: "P002"
-*                   quantity: 1
+*               productId: "product123"
 *     responses:
 *       200:
 *         description: Message published successfully

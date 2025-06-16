@@ -30,7 +30,8 @@ const customFormat = winston.format.printf(({ level, message, timestamp, ...meta
     timestamp,
     level,
     message,
-    service: "client-service",
+    "Properties.Version": "0.4",
+    "Properties.Service": "client",
     ...metadata
   });
 });

@@ -7,7 +7,7 @@ import { config } from '../app';
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
 
 const prometheusExporter = new PrometheusExporter(
-  { port: 3013, endpoint: '/metrics' },
+  { port: 3034, endpoint: '/metrics' },
   () => console.log(`✅ Prometheus exporter sur ${config.PROMETHEUS_EXPORTER_URL}`)
 );
 

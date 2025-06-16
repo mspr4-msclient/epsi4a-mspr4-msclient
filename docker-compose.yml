@@ -14,12 +14,11 @@ services:
       timeout: 5s
       retries: 20
 
-  orders:
+  order:
     image: dperreaux/epsi4a-mspr4-msorder:0.4
-    container_name: orders
+    container_name: order
     ports:
-      - "3022:8080"
-      - "3012:3012"
+      - "3012:8080"
     env_file:
       - ./environment/.env.order.development
     depends_on:
@@ -28,7 +27,7 @@ services:
 
   client:
     image: epsi4a-mspr4-msclient:test
-    container_name: clients
+    container_name: client
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -36,7 +35,7 @@ services:
         condition: service_started
     ports:
       - "3033:8080"
-      - "3013:3013"
+      - "3034:3034"
     env_file:
       - ./environment/.env.client.development
 
@@ -83,16 +82,15 @@ services:
     depends_on:
       - prometheus
 
-  products:
+  product:
     image: genessy/epsi4a-mspr4-msproduct:0.4.1
-    container_name: products
+    container_name: product
     depends_on:
       rabbitmq:
         condition: service_healthy
     ports:
-      - "3021:3022"
+      - "3022:8080"
     env_file:
       - ./environment/.env.product.development
     volumes:
       - ./configs/serviceAccountKey.json:/app/credentials/serviceAccountKey.json:ro
-      - ./logs:/app/logs
