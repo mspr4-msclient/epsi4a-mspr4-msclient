@@ -1,6 +1,6 @@
 import { Router } from "express";
 import UserController from '../controllers/user.controller';
-import { authorize } from "../auth/auth";
+import { authorize } from "../auth/authorize";
 
 
 const userController = new UserController();

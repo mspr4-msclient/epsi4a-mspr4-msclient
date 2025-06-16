@@ -1,6 +1,8 @@
 import winston from 'winston';
 import Transport from 'winston-transport';
 import axios from 'axios';
+import { config } from '../app';
+
 
 class LogstashHttpTransport extends Transport {
   constructor(opts: any) {
@@ -11,7 +13,7 @@ class LogstashHttpTransport extends Transport {
     setImmediate(() => this.emit('logged', info));
 
     try {
-      const logstashUrl = process.env.LOGSTASH_URL || 'http://logstash:5044';
+      const logstashUrl = config.LOGSTASH_URL;
       await axios.post(logstashUrl, info, {
         headers: { 'Content-Type': 'application/json' }
       });

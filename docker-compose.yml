@@ -5,29 +5,30 @@ services:
     ports:
       - "5672:5672" 
       - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      - "15692:15692"
+    command: >
+      bash -c "rabbitmq-plugins enable --offline rabbitmq_prometheus && rabbitmq-server"
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
 
-  # orders:
-  #   image: dperreaux/epsi4a-mspr4-msorder:0.3
-  #   container_name: orders
-  #   ports:
-  #     - "3022:8080"
-  #   env_file:
-  #     - ./environment/.env.order.development
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
+  orders:
+    image: dperreaux/epsi4a-mspr4-msorder:0.4
+    container_name: orders
+    ports:
+      - "3022:8080"
+      - "3012:3012"
+    env_file:
+      - ./environment/.env.order.development
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
-  client_consumer:
-    image: epsi4a-mspr4-msclient:0.4
-    container_name: client
+  client:
+    image: epsi4a-mspr4-msclient:test
+    container_name: clients
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -35,6 +36,7 @@ services:
         condition: service_started
     ports:
       - "3033:8080"
+      - "3013:3013"
     env_file:
       - ./environment/.env.client.development
 
@@ -63,29 +65,46 @@ services:
     ports:
       - "5601:5601"
 
-  # produit:
-  #   image: genessy/epsi4a-mspr4-msproduct:0.3
-  #   container_name: produit
-  #   hostname: produit
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   ports:
-  #     - "3022:8080"
-  #   environment:
-  #     - GOOGLE_APPLICATION_CREDENTIALS=/app/serviceAccountKey.json
-  #   env_file:
-  #     - ./environment/.env.product.development
-  #   volumes:
-  #     - ./serviceAccountKey.json:/app/serviceAccountKey.json
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./src/observability/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - client
 
-  # fidelite:
-  #   image: gmeline/epsi4a-mspr4-msfidelity:0.3
-  #   container_name: fidelite
-  #   hostname: fidelite
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   platform: linux/arm64
-  #   ports:
-  #     - "3044:8080"
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  products:
+    image: genessy/epsi4a-mspr4-msproduct:0.4.1
+    container_name: products
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "3021:3022"
+    env_file:
+      - ./environment/.env.product.development
+    volumes:
+      - ./configs/serviceAccountKey.json:/app/credentials/serviceAccountKey.json:ro
+      - ./logs:/app/logs
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.9
+    container_name: filebeat
+    user: root
+    depends_on:
+      - logstash
+    volumes:
+      - ./configs/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./logs:/app/logs
+    command: >
+      bash -c "chmod go-w /usr/share/filebeat/filebeat.yml && filebeat -e"

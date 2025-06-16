@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { spawn } from "child_process";
-import path from "path";
+
 
 export function authorize(allowedScopes: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {

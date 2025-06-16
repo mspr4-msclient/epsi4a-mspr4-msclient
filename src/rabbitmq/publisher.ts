@@ -1,7 +1,8 @@
 import amqp from 'amqplib/callback_api';
+import { config } from '../app';
 
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://rabbitmq';
+const RABBITMQ_URL = config.RABBITMQ_URL;
 
 export async function publishMessage(msg: unknown, exchangeName: string, exchangeType: string): Promise<void> {
   try {
