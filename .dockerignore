@@ -6,6 +6,4 @@ environment/
 .git
 .env.example
 docker-compose.yml
-docker-compose.override.yml
-/src/auth/middleware/token-verifier.exe
 /configs
