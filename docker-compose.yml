@@ -73,6 +73,8 @@ services:
       - ./src/observability/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - client
+      - order
+      - product
 
   grafana:
     image: grafana/grafana
