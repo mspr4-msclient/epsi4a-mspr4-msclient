@@ -85,7 +85,7 @@ services:
       - prometheus
 
   product:
-    image: genessy/epsi4a-mspr4-msproduct:0.4.1
+    image: genessy/epsi4a-mspr4-msproduct:0.4
     container_name: product
     depends_on:
       rabbitmq:
