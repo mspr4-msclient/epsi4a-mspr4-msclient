@@ -15,7 +15,7 @@ jobs:
         with:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           script: |
-            await github.actions.createWorkflowDispatch({
+            await github.repos.createWorkflowDispatch(({
               owner: 'mspr4-msclient',
               repo: 'epsi4a-mspr4-terraform',
               workflow_id: 'terraform.yml',
