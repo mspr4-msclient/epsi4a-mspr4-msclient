@@ -9,4 +9,4 @@ client-service-logs-*
   - http_errors_total
   - http_response_time_bucket
   - http_response_time_count
-  - http_response_time_sum
+  - http_response_time_sum  
