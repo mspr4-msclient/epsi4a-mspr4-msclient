@@ -15,7 +15,7 @@ services:
       retries: 20
 
   order:
-    image: dperreaux/epsi4a-mspr4-msorder:0.4
+    image: dperreaux/epsi4a-mspr4-msorder:0.5
     container_name: order
     ports:
       - "3012:8080"

@@ -135,7 +135,7 @@ dist/
 .yarn/install-state.gz
 .pnp.*
 /environment
-/src/auth/middleware/
 /configs
 /keys
 /.vscode
+/src/auth/middleware/keys

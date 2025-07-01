@@ -10,14 +10,14 @@ scrape_configs:
       - targets: ['rabbitmq:15692']
   - job_name: 'order'
     static_configs:
-      - targets: ['order:3012']
+      - targets: ['order:8080']
   - job_name: 'bff'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: [ 'bff:8000' ]
         labels:
           application: 'BFF - Paye ton kawa'
-  - job_name: 'product-service'
+  - job_name: 'product'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['product:8080']
