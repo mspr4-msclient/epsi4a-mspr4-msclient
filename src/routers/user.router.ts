@@ -59,7 +59,7 @@ const router = Router();
 *      500:
 *        description: Server Error
 */
-router.post('/', userController.createUser);
+router.post('/', authorize(["admin:client"]), userController.createUser);
 
 /**
 * @openapi
@@ -87,7 +87,7 @@ router.post('/', userController.createUser);
 *      500:
 *        description: Server Error
 */
-router.get('/', authorize(["admin:client"]), userController.getAllUsers);
+router.get('/', userController.getAllUsers);
 
 /**
 * @openapi

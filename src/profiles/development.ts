@@ -5,5 +5,6 @@ module.exports = {
     LOGSTASH_URL:"http://logstash:5044",
     ELASTICSEARCH_URL:process.env.ELASTICSEARCH_URL,
     CLIENT_MONGO_CONNECTION_STRING: process.env.CLIENT_MONGO_CONNECTION_STRING,
-    PROMETHEUS_EXPORTER_URL:"http://localhost:9464/metrics"
+    PROMETHEUS_EXPORTER_URL:"http://localhost:8080/metrics",
+    OLTP_TRACE_EXPORTER_URL: "http://jaeger:4318/v1/traces"
 };

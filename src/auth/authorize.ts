@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { spawn } from "child_process";
 import logger from "../loggers/logger";
+import os from "os";
+import path from "path";
 
 
 export function authorize(allowedScopes: string[]) {
@@ -9,7 +11,13 @@ export function authorize(allowedScopes: string[]) {
     let responseSent = false;
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader) {
+      responseSent = true;
+      logger.error("Unauthorized access attempt");
+      return res.status(401).send("Unauthorized");
+    }
+
+    if (!authHeader.startsWith("Bearer ")) {
       responseSent = true;
       logger.error("Unauthorized access attempt");
       return res.status(401).send("Unauthorized");
@@ -17,7 +25,14 @@ export function authorize(allowedScopes: string[]) {
 
     const token = authHeader.split(" ")[1];
 
-    const verifierPath = "./dist/auth/middleware/token-verifier";
+    const platform = os.platform();
+    let verifierPath: string;
+
+    if (platform === "win32") {
+      verifierPath = path.resolve(__dirname, "../auth/middleware/win-token-verifier.exe");
+    } else {
+      verifierPath = path.resolve(__dirname, "../auth/middleware/token-verifier");
+    }
 
     const verifier = spawn(verifierPath, [authHeader]);
 
@@ -33,7 +48,7 @@ export function authorize(allowedScopes: string[]) {
         const payload = JSON.parse(
           Buffer.from(token.split(".")[1], "base64").toString()
         );
-        const scopes: string[] = payload.scope?.split(" ") || [];
+        const scopes: string[] = payload.scope?.split(" ") ?? [];
 
         const hasScope = allowedScopes.some(scope => scopes.includes(scope));
         if (!hasScope) {

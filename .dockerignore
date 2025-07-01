@@ -1,4 +1,4 @@
-node_modules
+node_modules/
 npm-debug.log
 dist/
 environment/
@@ -6,4 +6,8 @@ environment/
 .git
 .env.example
 docker-compose.yml
-/configs
+configs/
+tests/
+.github/
+.vscode/
+sonar-project.properties

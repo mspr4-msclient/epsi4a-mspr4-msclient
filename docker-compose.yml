@@ -26,7 +26,7 @@ services:
         condition: service_healthy
 
   client:
-    image: epsi4a-mspr4-msclient:test
+    image: antoineletailleur/epsi4a-mspr4-msclient:0.7
     container_name: client
     depends_on:
       rabbitmq:
@@ -35,7 +35,6 @@ services:
         condition: service_started
     ports:
       - "3033:8080"
-      - "3034:3034"
     env_file:
       - ./environment/.env.client.development
 
@@ -96,3 +95,26 @@ services:
       - ./environment/.env.product.development
     volumes:
       - ./configs/serviceAccountKey.json:/app/credentials/serviceAccountKey.json:ro
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - ./src/observability/collector-config.yaml:/etc/otelcol/config.yaml
+    restart: unless-stopped
+    command:
+      - "--collector.otlp.http.host-port=0.0.0.0:4318"
+
+  bff:
+    image: eliseomurillo9/bff-paye-ton-kawa:0.2
+    container_name: bff
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./environment/.env.bff.development

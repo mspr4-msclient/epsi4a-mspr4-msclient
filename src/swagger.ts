@@ -22,14 +22,44 @@ function swaggerDocs(app: express.Express) {
           url: `/`,
           description: "Dynamically generated local server"
         }
-      ]
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+      security: [
+        {
+          bearerAuth: [],
+        },
+      ],
     },
     apis: [__dirname + '/routers/*.ts', __dirname + '/routers/*.js'],
   };
 
   const swaggerSpec = swaggerJsdoc(options);
 
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      authAction: {
+        bearerAuth: {
+          name: "Bearer",
+          schema: {
+            type: "http",
+            in: "header",
+            scheme: "bearer",
+            bearerFormat: "JWT"
+          },
+          value: "Bearer <TON_ACCESS_TOKEN>"
+        }
+      }
+    }
+  }));
+
   app.get('/docs.json', (_req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
