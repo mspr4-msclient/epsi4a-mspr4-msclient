@@ -44,9 +44,16 @@ app.listen(port, () => {
 
 //** MIDDLEWARE */
 app.use(express.json());
-app.use(cors({
-  origin: '*',
-}));
+
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors({
+    origin: '*',
+  }));
+} else {
+  app.use(cors({
+    origin: ['http://34.28.175.116:4318'],
+  }));
+}
 
 //** OBSERVABILITY */
 app.use(tracesMiddleware);

@@ -14,8 +14,18 @@ class LogstashHttpTransport extends Transport {
 
     try {
       const logstashUrl = config.LOGSTASH_URL;
-      await axios.post(logstashUrl, info, {
-        headers: { 'Content-Type': 'application/json' }
+
+      const enrichedLog = {
+        timestamp: new Date().toISOString(),
+        level: info.level,
+        message: info.message,
+        "Properties.Version": "0.4",
+        "Properties.Service": "Client",
+        ...info
+      };
+
+      await axios.post(logstashUrl, enrichedLog, {
+        headers: { 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error("Erreur envoi log à Logstash:", (error as any).message);
@@ -39,11 +49,15 @@ const customFormat = winston.format.printf(({ level, message, timestamp, ...meta
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
-    winston.format.timestamp(),
-    customFormat
+    winston.format.timestamp()
   ),
   transports: [
-    new winston.transports.Console(),
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        customFormat
+      )
+    }),
     new LogstashHttpTransport({})
   ],
 });

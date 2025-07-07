@@ -26,7 +26,7 @@ services:
         condition: service_healthy
 
   client:
-    image: antoineletailleur/epsi4a-mspr4-msclient:0.7
+    image: epsi4a-mspr4-msclient:test
     container_name: client
     depends_on:
       rabbitmq:
