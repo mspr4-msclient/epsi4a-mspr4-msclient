@@ -11,10 +11,11 @@ import { tracesMiddleware } from './observability/traces.middleware';
 
 
 //** SERVER CONFIGURATIONS */*
-const env = process.env.NODE_ENV;
+const env = process.env.NODE_ENV ?? 'development';
 
 if (process.env.NODE_ENV !== 'production') {
   const envPath = path.resolve(__dirname, `../environment/.env.client.${env}`);
+  console.log(`Chargement du fichier d'environnement : ${envPath}`);
   dotenv.config({ path: envPath });
 }
 
@@ -23,6 +24,7 @@ let envConfig = {};
 
 try {
   envConfig = require(`./profiles/${process.env.NODE_ENV}`);
+  console.log(`Configuration chargée pour l'environnement : ${process.env.NODE_ENV}`);
 } catch (error) {
   console.error("Erreur lors du chargement de la configuration :", error);
   process.exit(1);
@@ -32,6 +34,9 @@ export const config = {
   ...defaultConfig,
   ...envConfig,
 }
+
+Observability(config);
+getSdk().start();
 
 export const app = express();
 const port = config.PORT;
@@ -51,16 +56,13 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 } else {
   app.use(cors({
-    origin: ['http://34.28.175.116:4318'],
+    origin: ['http://34.42.114.30:4318', '*'],
   }));
 }
 
-//** OBSERVABILITY */
 app.use(tracesMiddleware);
-Observability(config);
 const { requestCounter, requestDuration, responseCounter } = getObservabilityMetrics();
 app.use(metricsMiddleware(requestCounter, requestDuration, responseCounter));
-getSdk().start();
 
 //** DB */
 connectToDatabase();

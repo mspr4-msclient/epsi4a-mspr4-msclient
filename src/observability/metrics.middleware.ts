@@ -3,6 +3,10 @@ import { Request, Response } from "express";
 export const metricsMiddleware = (requestCounter: any, requestDuration: any, responseCounter: any) =>
     (req: Request, res: Response, next: any) => {
 
+    if (req.path === '/metrics') {
+      return next();
+    }
+
     const start = process.hrtime();
 
     res.on('finish', () => {
@@ -11,7 +15,7 @@ export const metricsMiddleware = (requestCounter: any, requestDuration: any, res
 
     const labels = {
       method: req.method,
-      route: req.path,
+      route: req.originalUrl.split('?')[0],
       status_code: res.statusCode.toString(),
       env: process.env.NODE_ENV,
     };

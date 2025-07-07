@@ -56,22 +56,16 @@ export function Observability(config: any) {
 
   tracer = opentelemetry.trace.getTracer('client', '0.7');
 
-  httpInstrumentation= new HttpInstrumentation({
-    ignoreIncomingRequestHook: (request) => {
-      const url = request.url;
-      return url === '/metrics';
-    },
-    ignoreOutgoingRequestHook: (request) => {
-      return request.hostname === config.LOGSTASH_URL;
-    }
-  });
-
   sdk = new NodeSDK({
     resource,
     traceExporter: exporter,
     instrumentations: [
-      getNodeAutoInstrumentations(),
-      httpInstrumentation,
+      getNodeAutoInstrumentations({
+        '@opentelemetry/instrumentation-http': {
+          ignoreIncomingRequestHook: (request) => request.url === '/metrics',
+          ignoreOutgoingRequestHook: (request) => request.hostname === config.LOGSTASH_URL,
+        },
+      }),
     ],
   });
 }

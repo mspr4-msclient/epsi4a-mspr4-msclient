@@ -1,4 +1,5 @@
 module.exports = {
+    // NODE_ENV: process.env.NODE_ENV,
     PORT: 8080,
     CLIENT_URL: "https://mspr4-cloud-run-service-321153931988.us-central1.run.app",
     RABBITMQ_URL:"amqp://34.42.114.30",

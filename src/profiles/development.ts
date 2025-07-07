@@ -1,4 +1,5 @@
 module.exports = {
+    NODE_ENV: process.env.NODE_ENV,
     PORT: 8080,
     CLIENT_URL: "http://localhost",
     RABBITMQ_URL:"amqp://rabbitmq",

@@ -26,7 +26,7 @@ services:
         condition: service_healthy
 
   client:
-    image: epsi4a-mspr4-msclient:test
+    image: epsi4a-mspr4-msclient:0.8
     container_name: client
     depends_on:
       rabbitmq:
@@ -112,7 +112,7 @@ services:
       - "--collector.otlp.http.host-port=0.0.0.0:4318"
 
   bff:
-    image: eliseomurillo9/bff-paye-ton-kawa:0.2
+    image: eliseomurillo9/bff-paye-ton-kawa:0.3
     container_name: bff
     ports:
       - "8000:8000"

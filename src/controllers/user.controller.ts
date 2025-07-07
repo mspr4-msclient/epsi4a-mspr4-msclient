@@ -32,8 +32,6 @@ export default class UserController {
 
         getTracer().startActiveSpan("UserController.createUser", async (span: Span) => {
             try {
-                span.setAttribute('http.route', req.originalUrl);
-                span.setAttribute('http.method', req.method);
                 
                 const { email, first_name, last_name, birth_date, auth_id } = req.body;
         
@@ -81,9 +79,7 @@ export default class UserController {
 
         getTracer().startActiveSpan("UserController.getUserByAuthId", async (span: Span) => {
             try {
-                span.setAttribute('http.route', req.originalUrl);
-                span.setAttribute('http.method', req.method);
-
+                
                 const { auth_id } = req.params as { auth_id: string };
 
                 if (!auth_id) {
@@ -123,8 +119,6 @@ export default class UserController {
 
         getTracer().startActiveSpan("UserController.updateUser", async (span: Span) => {
             try {
-                span.setAttribute('http.route', req.originalUrl);
-                span.setAttribute('http.method', req.method);
 
                 const { auth_id } = req.params as { auth_id: string };
             
@@ -179,9 +173,7 @@ export default class UserController {
         
         getTracer().startActiveSpan("UserController.deleteUser", async (span: Span) => {
             try {
-                span.setAttribute('http.route', req.originalUrl);
-                span.setAttribute('http.method', req.method);
-
+                
                 const { auth_id } = req.params as { auth_id: string };
             
                 if (!auth_id) {
@@ -221,8 +213,6 @@ export default class UserController {
 
         getTracer().startActiveSpan("UserController.getAllUsers", async (span: Span) => {
             try {
-                span.setAttribute('http.route', req.originalUrl);
-                span.setAttribute('http.method', req.method);
 
                 const page = parseInt(req.query.page as string) || 1;
                 const limit = parseInt(req.query.limit as string) || 10;
@@ -264,8 +254,6 @@ export default class UserController {
 
         getTracer().startActiveSpan("UserController.birthdayEvent", async (span: Span) => {
             try {
-                span.setAttribute('http.route', req.originalUrl);
-                span.setAttribute('http.method', req.method);
 
                 const msg = req.body;
                 const { exchangeName, exchangeType } = req.query as { exchangeName: string, exchangeType: string };
