@@ -56,7 +56,7 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 } else {
   app.use(cors({
-    origin: ['http://34.42.114.30:4318', '*'],
+    origin: ['http://34.42.114.30', 'https://paye-ton-kawa-bff-120571313220.europe-west1.run.app'],
   }));
 }
 

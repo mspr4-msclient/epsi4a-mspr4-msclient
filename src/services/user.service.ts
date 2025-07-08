@@ -1,4 +1,3 @@
-import { auth } from 'express-openid-connect';
 import { UserModel } from '../models/user.model';
 
 
