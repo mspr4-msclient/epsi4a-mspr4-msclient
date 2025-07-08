@@ -74,6 +74,7 @@ services:
       - client
       - order
       - product
+      - bff
 
   grafana:
     image: grafana/grafana
