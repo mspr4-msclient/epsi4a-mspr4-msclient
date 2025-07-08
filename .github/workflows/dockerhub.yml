@@ -20,9 +20,6 @@ jobs:
           VERSION="${BRANCH_NAME#release/}"
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -35,6 +32,7 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
+          load: true
           tags: |
             antoineletailleur/epsi4a-mspr4-msclient:latest
             antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
