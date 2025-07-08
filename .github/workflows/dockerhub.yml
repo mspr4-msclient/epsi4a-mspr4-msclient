@@ -32,5 +32,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
+          context: .
           push: true
-          tags: antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          platforms: linux/amd64
+          tags: |
+            antoineletailleur/epsi4a-mspr4-msclient:latest
+            antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
