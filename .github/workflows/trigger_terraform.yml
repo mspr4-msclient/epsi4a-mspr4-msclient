@@ -3,7 +3,7 @@ name: Trigger Terraform CD
 on:
   push:
     branches:
-      - main
+      - azer
 
 jobs:
   trigger-terraform:

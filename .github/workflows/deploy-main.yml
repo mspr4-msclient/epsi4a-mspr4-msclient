@@ -1,0 +1,60 @@
+name: Deploy on Tag
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract tag from Git ref
+        id: extract_tag
+        run: |
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Auth to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Configure Docker for GCP Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Pull image from DockerHub and retag for Artifact Registry
+        run: |
+          docker pull antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          docker tag antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} \
+            us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          docker push us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+
+      - name: Trigger Terraform CD with tag
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          script: |
+            const response = await fetch('https://api.github.com/repos/mspr4-msclient/epsi4a-mspr4-terraform/actions/workflows/terraform.yml/dispatches', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                ref: 'main',
+                inputs: {
+                  image_tag: '${{ steps.extract_tag.outputs.tag }}'
+                }
+              })
+            });
+
+            if (!response.ok) {
+              const errorBody = await response.text();
+              throw new Error(`GitHub API error: ${response.status} - ${errorBody}`);
+            }
