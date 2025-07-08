@@ -29,4 +29,4 @@ jobs:
       - name: Build and push Docker image to DockerHub
         run: |
           docker build -t epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} .
-          docker push antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          docker push epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
