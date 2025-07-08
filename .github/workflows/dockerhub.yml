@@ -26,7 +26,13 @@ jobs:
           username: antoineletailleur
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image to DockerHub
-        run: |
-          docker build -t antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} .
-          docker push antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            antoineletailleur/epsi4a-mspr4-msclient:latest
+            antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+
