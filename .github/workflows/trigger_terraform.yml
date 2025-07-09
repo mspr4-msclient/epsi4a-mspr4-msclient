@@ -1,15 +1,25 @@
 name: Trigger Terraform CD
 
 on:
-  push:
+  pull_request:
     branches:
-      - azer
+      - main
 
 jobs:
   trigger-terraform:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Extract tag from PR branch name
+        id: extract_tag
+        run: |
+          echo "PR_BRANCH=${{ github.head_ref }}"
+          TAG=${{ github.head_ref }}
+          if [[ "$TAG" == release/* ]]; then
+            TAG="${TAG#release/}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
       - name: Trigger Terraform workflow
         uses: actions/github-script@v6
         with:
@@ -23,7 +33,10 @@ jobs:
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                ref: 'main'
+                ref: 'main',
+                inputs: {
+                  image_tag: '${{ steps.extract_tag.outputs.tag }}'
+                }
               })
             });
 
