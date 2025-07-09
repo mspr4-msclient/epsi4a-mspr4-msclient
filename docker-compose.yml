@@ -112,10 +112,10 @@ services:
     command:
       - "--collector.otlp.http.host-port=0.0.0.0:4318"
 
-  bff:
-    image: eliseomurillo9/bff-paye-ton-kawa:0.3
-    container_name: bff
-    ports:
-      - "8000:8000"
-    env_file:
-      - ./environment/.env.bff.development
+  # bff:
+  #   image: eliseomurillo9/bff-paye-ton-kawa:0.3
+  #   container_name: bff
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - ./environment/.env.bff.development
