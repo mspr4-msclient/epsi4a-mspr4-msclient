@@ -25,6 +25,7 @@ jobs:
         with:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           script: |
+            const tag = '${{ steps.extract_tag.outputs.tag }}';
             const response = await fetch('https://api.github.com/repos/mspr4-msclient/epsi4a-mspr4-terraform/actions/workflows/terraform.yml/dispatches', {
               method: 'POST',
               headers: {
@@ -35,12 +36,11 @@ jobs:
               body: JSON.stringify({
                 ref: 'main',
                 inputs: {
-                  image_tag: '${{ steps.extract_tag.outputs.tag }}'
+                  image_tag: tag
                 }
               })
             });
 
-            if (!response.ok) {
-              const errorBody = await response.text();
-              throw new Error(`GitHub API error: ${response.status} - ${errorBody}`);
+            if (response.status !== 204) {
+              throw new Error(`Failed to dispatch workflow: ${response.status}`);
             }
