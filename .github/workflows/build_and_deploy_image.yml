@@ -29,11 +29,17 @@ jobs:
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Pull image from DockerHub and retag for Artifact Registry
+      - name: Build Docker image
         run: |
-          docker pull antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          docker build -t antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} .
+
+      - name: Tag Docker image for Artifact Registry
+        run: |
           docker tag antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
           docker tag antoineletailleur/epsi4a-mspr4-msclient:latest us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:latest
+
+      - name: Push Docker images to Artifact Registry
+        run: |
           docker push us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
           docker push us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:latest
 
