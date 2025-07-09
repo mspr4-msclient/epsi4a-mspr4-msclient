@@ -36,7 +36,7 @@ jobs:
       - name: Tag Docker image for Artifact Registry
         run: |
           docker tag antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
-          docker tag antoineletailleur/epsi4a-mspr4-msclient:latest us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:latest
+          docker tag antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:latest
 
       - name: Push Docker images to Artifact Registry
         run: |
