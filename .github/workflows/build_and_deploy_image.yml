@@ -1,0 +1,45 @@
+name: Build & Push DockerHub
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Extract version from branch name
+        id: extract_tag
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/release/}
+          VERSION="${BRANCH_NAME#release/}"
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Auth to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Configure Docker for GCP Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build Docker image
+        run: |
+          docker build -t antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} .
+
+      - name: Tag Docker image for Artifact Registry
+        run: |
+          docker tag antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          docker tag antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }} us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:latest
+
+      - name: Push Docker images to Artifact Registry
+        run: |
+          docker push us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:${{ steps.extract_tag.outputs.tag }}
+          docker push us-central1-docker.pkg.dev/mspr4-463021/mspr4-docker-repository/antoineletailleur/epsi4a-mspr4-msclient:latest
+
