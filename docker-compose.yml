@@ -14,30 +14,6 @@ services:
       timeout: 5s
       retries: 20
 
-  order:
-    image: dperreaux/epsi4a-mspr4-msorder:0.5
-    container_name: order
-    ports:
-      - "3012:8080"
-    env_file:
-      - ./environment/.env.order.development
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-
-  client:
-    image: epsi4a-mspr4-msclient:0.8
-    container_name: client
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      logstash:
-        condition: service_started
-    ports:
-      - "3033:8080"
-    env_file:
-      - ./environment/.env.client.development
-
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
     container_name: elasticsearch
@@ -70,11 +46,11 @@ services:
       - "9090:9090"
     volumes:
       - ./src/observability/prometheus.yml:/etc/prometheus/prometheus.yml
-    depends_on:
-      - client
-      - order
-      - product
-      - bff
+    # depends_on:
+    #   - client
+    #   - order
+    #   - product
+    #   - bff
 
   grafana:
     image: grafana/grafana
@@ -83,19 +59,6 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
-
-  product:
-    image: genessy/epsi4a-mspr4-msproduct:0.4
-    container_name: product
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    ports:
-      - "3022:8080"
-    env_file:
-      - ./environment/.env.product.development
-    volumes:
-      - ./configs/serviceAccountKey.json:/app/credentials/serviceAccountKey.json:ro
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -112,10 +75,47 @@ services:
     command:
       - "--collector.otlp.http.host-port=0.0.0.0:4318"
 
-  bff:
-    image: eliseomurillo9/bff-paye-ton-kawa:0.3
-    container_name: bff
-    ports:
-      - "8000:8000"
-    env_file:
-      - ./environment/.env.bff.development
+  # product:
+  #   image: genessy/epsi4a-mspr4-msproduct:0.4
+  #   container_name: product
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3022:8080"
+  #   env_file:
+  #     - ./environment/.env.product.development
+  #   volumes:
+  #     - ./configs/serviceAccountKey.json:/app/credentials/serviceAccountKey.json:ro
+
+  # bff:
+  #   image: eliseomurillo9/bff-paye-ton-kawa:0.3
+  #   container_name: bff
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - ./environment/.env.bff.development
+
+  # client:
+  #   image: epsi4a-mspr4-msclient:0.8
+  #   container_name: client
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #     logstash:
+  #       condition: service_started
+  #   ports:
+  #     - "3033:8080"
+  #   env_file:
+  #     - ./environment/.env.client.development
+
+  # order:
+  #   image: dperreaux/epsi4a-mspr4-msorder:0.5
+  #   container_name: order
+  #   ports:
+  #     - "3012:8080"
+  #   env_file:
+  #     - ./environment/.env.order.development
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy

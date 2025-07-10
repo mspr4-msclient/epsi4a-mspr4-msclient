@@ -12,10 +12,9 @@ export async function publishMessage(msg: unknown, exchangeName: string, exchang
         if (error1) { throw error1; }
         channel.assertExchange(exchangeName, exchangeType, {durable: true})
         channel.publish(exchangeName, exchangeType, Buffer.from(JSON.stringify(msg)));
-        console.log(" [x] Sent %s", JSON.stringify(msg));
       });
     });
   } catch (error) {
-    console.error('Publisher error:', error);
+    throw new Error(`Failed to publish message: ${(error as Error).message}`);
   }
 }

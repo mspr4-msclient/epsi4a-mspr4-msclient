@@ -1,11 +1,9 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import { connectToDatabase } from './database/connection';
-import swaggerDocs from './swagger';
 import cors from 'cors';
 import path from 'path';
 import { Observability, getObservabilityMetrics, getSdk, metricsHandler } from './observability/otel';
-import logger from './loggers/logger';
 import { metricsMiddleware } from './observability/metrics.middleware';
 import { tracesMiddleware } from './observability/traces.middleware';
 
@@ -35,17 +33,12 @@ export const config = {
   ...envConfig,
 }
 
-Observability(config);
-getSdk().start();
+if (process.env.NODE_ENV !== 'test') {
+  Observability(config);
+  getSdk().start();
+}
 
-export const app = express();
-const port = config.PORT;
-const clientUrl = config.CLIENT_URL;
-app.listen(port, () => {
-  logger.info(`Microservice User is running on port ${clientUrl}:${port}`);
-  console.log(`✅ Microservice User lancé sur : ${clientUrl}:${port}`);
-  swaggerDocs(app);
-});
+const app = express();
 
 //** MIDDLEWARE */
 app.use(express.json());
@@ -60,13 +53,20 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-app.use(tracesMiddleware);
-const { requestCounter, requestDuration, responseCounter } = getObservabilityMetrics();
-app.use(metricsMiddleware(requestCounter, requestDuration, responseCounter));
+if (process.env.NODE_ENV !== 'test') {
+  app.use(tracesMiddleware);
+  const { requestCounter, requestDuration, responseCounter } = getObservabilityMetrics();
+  app.use(metricsMiddleware(requestCounter, requestDuration, responseCounter));
+}
 
 //** DB */
 connectToDatabase();
 
 //** ROUTES */
 app.use('/api/v1/clients', require("./routers/user.router"));
-app.get('/metrics', metricsHandler);
+
+if (process.env.NODE_ENV !== 'test') {
+  app.get('/metrics', metricsHandler);
+}
+
+export default app;
