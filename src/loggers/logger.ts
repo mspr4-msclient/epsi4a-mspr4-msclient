@@ -46,20 +46,25 @@ const customFormat = winston.format.printf(({ level, message, timestamp, ...meta
   });
 });
 
+const transports: winston.transport[] = [
+  new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.timestamp(),
+      customFormat
+    )
+  })
+];
+
+if (process.env.NODE_ENV !== 'test') {
+  transports.push(new LogstashHttpTransport({}));
+}
+
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
     winston.format.timestamp()
   ),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        customFormat
-      )
-    }),
-    new LogstashHttpTransport({})
-  ],
+  transports
 });
 
 export default logger;
