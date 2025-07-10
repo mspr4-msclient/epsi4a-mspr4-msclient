@@ -30,6 +30,9 @@ jobs:
       - name: Build project (TypeScript)
         run: npm run build
 
+      - name: Run tests with coverage
+        run: npm run test -- --coverage
+
       - name: Run SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         env:
