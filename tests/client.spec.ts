@@ -196,11 +196,4 @@ describe('UserController (/api/v1/clients)', () => {
       expect(res.status).toBe(400);
     });
   });
-
-  // afterAll(async () => {
-  //   if (mongoose.connection.readyState !== 0) {
-  //     await mongoose.disconnect();
-  //   }
-  // }, 15000);
-
 });

@@ -60,7 +60,9 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 //** DB */
-connectToDatabase();
+if (process.env.NODE_ENV !== 'test') {
+  connectToDatabase();
+}
 
 //** ROUTES */
 app.use('/api/v1/clients', require("./routers/user.router"));
