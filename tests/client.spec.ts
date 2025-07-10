@@ -22,6 +22,11 @@ jest.mock('../src/observability/otel.ts', () => ({
   }),
 }));
 
+jest.mock('../src/rabbitmq/publisher.ts', () => ({
+  publishMessage: jest.fn()
+}));
+
+
 const mockUserRaw = {
   _id: new mongoose.Types.ObjectId('60d21b4667d0d8992e610c85'),
   email: 'test@example.com',
