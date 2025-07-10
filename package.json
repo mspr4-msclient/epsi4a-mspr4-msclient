@@ -5,7 +5,7 @@
   "scripts": {
     "start-prod": "cross-env NODE_ENV=production npm run build && node ./dist/server.js",
     "dev": "cross-env NODE_ENV=development nodemon --watch src --exec ts-node src/server.js",
-    "build": "rimraf ./dist && tsc && cpx src/auth/middleware/** dist/auth/middleware",
+    "build": "rimraf ./dist && tsc && cpx \"src/auth/middleware/**\" dist/auth/middleware",
     "test": "jest --coverage --runInBand --detectOpenHandles"
   },
   "author": "",
